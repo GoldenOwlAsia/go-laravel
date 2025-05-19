@@ -46,13 +46,13 @@ This boilerplate uses [`tymon/jwt-auth`](https://github.com/tymondesigns/jwt-aut
 
 ### 🔑 Core API Endpoints
 
-| Method | Endpoint             | Description           |
-| ------ | -------------------- | --------------------- |
-| POST   | `/api/auth/login`    | Login                 |
-| POST   | `/api/auth/register` | Register              |
-| POST   | `/api/auth/logout`   | Logout                |
-| POST   | `/api/auth/refresh`  | Refresh token         |
-| POST   | `/api/me`            | Get current user info |
+| Method | Endpoint       | Description           |
+|--------|----------------|-----------------------|
+| POST   | `/api/auth/login`   | Login                 |
+| POST   | `/api/auth/register`| Register              |
+| POST   | `/api/auth/logout`  | Logout                |
+| POST   | `/api/auth/refresh` | Refresh token         |
+| POST   | `/api/me`      | Get current user info |
 
 ### ⚙️ Generate key Commands
 
@@ -66,10 +66,10 @@ Powered by [Laravel Socialite](https://laravel.com/docs/12.x/socialite) for OAut
 
 ### 🌐 OAuth Routes
 
-| Method | Endpoint                        | Description           |
-| ------ | ------------------------------- | --------------------- |
-| GET    | `/api/auth/{provider}/redirect` | Redirect to OAuth URL |
-| GET    | `/api/auth/{provider}/callback` | Handle OAuth callback |
+| Method | Endpoint                                | Description            |
+|--------|-----------------------------------------|------------------------|
+| GET    | `/api/auth/{provider}/redirect`         | Redirect to OAuth URL |
+| GET    | `/api/auth/{provider}/callback`         | Handle OAuth callback |
 
 > `{provider}` must be one of: `google`, `facebook`, `github`
 
