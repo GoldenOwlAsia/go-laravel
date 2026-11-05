@@ -52,7 +52,7 @@ This boilerplate uses [`tymon/jwt-auth`](https://github.com/tymondesigns/jwt-aut
 | POST   | `/api/auth/register`| Register              |
 | POST   | `/api/auth/logout`  | Logout                |
 | POST   | `/api/auth/refresh` | Refresh token         |
-| POST   | `/api/me`      | Get current user info |
+| GET    | `/api/me`      | Get current user info |
 
 ### ⚙️ Generate key Commands
 

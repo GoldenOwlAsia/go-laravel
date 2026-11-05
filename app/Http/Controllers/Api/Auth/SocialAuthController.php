@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SocialProviderRequest;
 use App\Models\SocialAccount;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class SocialAuthController extends Controller
 {
@@ -21,30 +23,44 @@ class SocialAuthController extends Controller
     {
         $socialUser = Socialite::driver($provider)->stateless()->user();
 
-        $socialAccount = SocialAccount::where('provider', $provider)
+        $user = SocialAccount::where('provider', $provider)
             ->where('provider_id', $socialUser->getId())
-            ->first();
+            ->first()?->user;
 
-        if ($socialAccount) {
-            $user = $socialAccount->user;
-        } else {
-            $user = User::firstOrCreate(
-                ['email' => $socialUser->getEmail()],
-                [
-                    'name' => $socialUser->getName() ?? $socialUser->getNickname(),
-                    'password' => bcrypt(\Illuminate\Support\Str::random(16))
-                ]
-            );
-            $user->socialAccounts()->create([
-                'provider' => $provider,
-                'provider_id' => $socialUser->getId(),
-            ]);
+        if (! $user) {
+            $email = $socialUser->getEmail();
+
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return response()->json(['error' => __('auth.email_required')], 422);
+            }
+
+            try {
+                $user = DB::transaction(function () use ($socialUser, $provider, $email) {
+                    $user = User::firstOrCreate(
+                        ['email' => $email],
+                        [
+                            'name' => $socialUser->getName() ?? $socialUser->getNickname() ?? Str::before($email, '@'),
+                            'password' => bcrypt(Str::random(16)),
+                        ]
+                    );
+
+                    $user->socialAccounts()->create([
+                        'provider' => $provider,
+                        'provider_id' => $socialUser->getId(),
+                    ]);
+
+                    return $user;
+                });
+            } catch (UniqueConstraintViolationException) {
+                $user = SocialAccount::where('provider', $provider)
+                    ->where('provider_id', $socialUser->getId())
+                    ->firstOrFail()
+                    ->user;
+            }
         }
 
         $token = JWTAuth::fromUser($user);
-        return response()->json([
-            'token' => $token,
-            'user' => $user
-        ]);
+
+        return response()->json($this->tokenPayload($token));
     }
 }
