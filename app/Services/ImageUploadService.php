@@ -2,28 +2,29 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Str;
-use Intervention\Image\Laravel\Facades\Image;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
+use RuntimeException;
 
 class ImageUploadService
 {
     public function upload(UploadedFile $file, string $folder = 'uploads', ?int $width = null, ?int $height = null): string
     {
-        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-        $path = "$folder/$filename";
+        $disk = Storage::disk('s3');
+        $path = $folder.'/'.Str::uuid().'.'.$file->getClientOriginalExtension();
 
-        $image = Image::make($file->getRealPath());
+        $image = Image::read($file->getRealPath());
 
         if ($width || $height) {
-            $image->resize($width, $height, function ($constraint) {
-                $constraint->aspectRatio();
-                $constraint->upsize();
-            });
+            $image->scaleDown($width, $height);
         }
-        Storage::disk('s3')->put($path, (string) $image->encode());
 
-        return Storage::url($path);
+        if (! $disk->put($path, (string) $image->encode())) {
+            throw new RuntimeException("Failed to upload image to [{$path}].");
+        }
+
+        return $disk->url($path);
     }
 }
