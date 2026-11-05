@@ -14,7 +14,7 @@ A powerful boilerplate to quickly start a Laravel 12 API project with:
 
 ## 📦 Requirements
 
-- PHP >= 8.2
+- PHP >= 8.4.27
 - Laravel 12.x
 - Composer
 - MySQL/PostgreSQL
